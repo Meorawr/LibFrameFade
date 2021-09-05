@@ -9,7 +9,7 @@
 ## X-Category: Development Tools
 ## X-License: Public Domain
 ## X-Website: https://github.com/Meorawr/LibFrameFade
-## X-Curse-Project-ID: 0
+## X-Curse-Project-ID: 523855
 ## X-Wago-ID: e56nRD69
 ## X-WoWI-ID: 0
 
