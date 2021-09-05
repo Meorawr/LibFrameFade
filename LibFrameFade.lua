@@ -1,4 +1,4 @@
-local LIBFRAMEFADE_VERSION = 1;
+local LIBFRAMEFADE_VERSION = 2;
 
 if LibFrameFade and (LibFrameFade.VERSION or 0) >= LIBFRAMEFADE_VERSION then
     return;
