@@ -179,7 +179,6 @@ function LibFrameFade:CreateFader()
 end
 
 function LibFrameFade:ResetFader(fader)
-    fader:Stop();
     fader.Anim:SetTarget(self);  -- See GetFrameForFader for why we use 'self'.
 end
 
