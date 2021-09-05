@@ -167,11 +167,17 @@ function LibFrameFade:StartFadingFrame(frame, fadeInfo)
     -- function that we've hooked guarantees that the alpha of 'frame' will
     -- be set to the '.startAlpha' value.
 
+    local fromAlpha = frame:GetAlpha();
+    local toAlpha = fadeInfo.endAlpha;
+    local duration = fadeInfo.timeToFade;
+    local elapsed = fadeInfo.fadeTimer or 0;
+    local endDelay = fadeInfo.fadeHoldTime or 0;
+
     fader.Anim:SetTarget(frame);
-    fader.Anim:SetFromAlpha(frame:GetAlpha());
-    fader.Anim:SetToAlpha(fadeInfo.endAlpha);
-    fader.Anim:SetDuration(fadeInfo.timeToFade);
-    fader.Anim:SetEndDelay(fadeInfo.fadeHoldTime or 0);
+    fader.Anim:SetFromAlpha(fromAlpha);
+    fader.Anim:SetToAlpha(toAlpha);
+    fader.Anim:SetDuration(duration - elapsed);
+    fader.Anim:SetEndDelay(endDelay);
 
     fader:Play();
 end
