@@ -20,7 +20,6 @@ read_globals = {
     "CopyTable",
     "CreateFrame",
     "CreateObjectPool",
-    "GenerateClosure",
     "hooksecurefunc",
     "ipairs_reverse",
     "issecurevariable",

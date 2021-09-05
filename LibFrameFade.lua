@@ -4,11 +4,6 @@ if LibFrameFade and (LibFrameFade.VERSION or 0) >= LIBFRAMEFADE_VERSION then
     return;
 end
 
-local function GenerateDynamicClosure(funcName, owner, ...)
-    local func = function(...) return owner[funcName](owner, ...); end;
-    return GenerateClosure(func, ...);
-end
-
 local function RehashTable(tbl)
     local strkey = "LibFrameFade_RehashKey";
     local numkey = 2^32;
@@ -63,12 +58,12 @@ function LibFrameFade:OnLoad()
     end
 
     if not self.isUIFrameFadeHooked then
-        hooksecurefunc("UIFrameFade", GenerateDynamicClosure("ProcessGlobalFadeFrames", self));
+        hooksecurefunc("UIFrameFade", function() return self:ProcessFadeFrames(); end);
         self.isUIFrameFadeHooked = true;
     end
 
     if not self.isUIFrameFadeRemoveFrameHooked then
-        hooksecurefunc("UIFrameFadeRemoveFrame", GenerateDynamicClosure("StopFadingFrame", self));
+        hooksecurefunc("UIFrameFadeRemoveFrame", function(frame) return self:StopFadingFrame(frame); end);
         self.isUIFrameFadeRemoveFrameHooked = true;
     end
 
@@ -160,8 +155,8 @@ end
 -- private
 function LibFrameFade:CreateFader()
     local fader = self:CreateAnimationGroup();
-    fader:SetScript("OnFinished", GenerateDynamicClosure("OnFaderFinished", self));
-    fader:SetScript("OnStop", GenerateDynamicClosure("OnFaderStopped", self));
+    fader:SetScript("OnFinished", function(...) return self:OnFaderFinished(...); end);
+    fader:SetScript("OnStop", function(...) return self:OnFaderStopped(...); end);
     fader:SetToFinalAlpha(true);
 
     fader.Anim = fader:CreateAnimation("Alpha");
