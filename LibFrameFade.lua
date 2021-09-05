@@ -49,7 +49,7 @@ end
 
 function LibFrameFade:StopFadingFrame(frame)
     -- Releasing the fader associated with a frame will stop the animation,
-    -- and because SetToFinalAlpha is in effect here, the final alpha value
+    -- and because SetToFinalAlpha is in effect here the final alpha value
     -- on 'frame' will be set according to the progress of the animation,
     -- which aligns with the behavior of UIFrameFadeRemoveFrame.
 
@@ -88,11 +88,6 @@ function LibFrameFade:OnLoad()
 end
 
 -- private
-function LibFrameFade:OnFaderStopped(fader, requested)  -- luacheck: no unused (requested)
-    self:ReleaseFader(fader);
-end
-
--- private
 function LibFrameFade:OnFaderFinished(fader)
     local finishedFunc = fader.finishedFunc;
 
@@ -110,6 +105,11 @@ function LibFrameFade:OnFaderFinished(fader)
     if finishedFunc then
         xpcall(finishedFunc, CallErrorHandler);
     end
+end
+
+-- private
+function LibFrameFade:OnFaderStopped(fader, requested)  -- luacheck: no unused (requested)
+    self:ReleaseFader(fader);
 end
 
 -- private
