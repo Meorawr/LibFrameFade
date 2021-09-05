@@ -201,7 +201,8 @@ function LibFrameFade:ProcessGlobalFadeFrames()
     local frames = FADEFRAMES;
 
     for index, frame in ipairs_reverse(frames) do
-        local fadeInfo = CopyTable(frame.fadeInfo, true);
+        local shallow = true;
+        local fadeInfo = CopyTable(frame.fadeInfo, shallow);
         fadeInfo.startAlpha = frame:GetAlpha();
 
         self:StartFadingFrame(frame, fadeInfo);
