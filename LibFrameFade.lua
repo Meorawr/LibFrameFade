@@ -1,6 +1,6 @@
-local LIBFRAMEFADE_SCRIPT_VERSION = 1;
+local LIBFRAMEFADE_VERSION = 1;
 
-if LibFrameFade and (LibFrameFade.VERSION or 0) >= LIBFRAMEFADE_SCRIPT_VERSION then
+if LibFrameFade and (LibFrameFade.VERSION or 0) >= LIBFRAMEFADE_VERSION then
     return;
 end
 
@@ -215,4 +215,4 @@ function LibFrameFade:ProcessGlobalFadeFrames()
 end
 
 LibFrameFade:OnLoad();
-LibFrameFade.VERSION = LIBFRAMEFADE_SCRIPT_VERSION;
+LibFrameFade.VERSION = LIBFRAMEFADE_VERSION;
