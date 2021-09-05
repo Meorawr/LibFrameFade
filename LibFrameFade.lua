@@ -152,11 +152,11 @@ end
 function LibFrameFade:StartFadingFrame(frame, fadeInfo)
     local fader = self:AcquireFaderForFrame(frame);
 
-    -- The 'startAlpha' field on the 'fadeInfo' table is explicitly ignored
+    -- The '.startAlpha' field on the 'fadeInfo' table is explicitly ignored
     -- when configuring the from-alpha value for the animation in favor of
     -- the current alpha value of the frame.
     --
-    -- The reason is that we need to support the case where tanimations are
+    -- The reason is that we need to support the case where animations are
     -- already in-progress via UIFrameFade. This may happen if we're loaded
     -- late, or in an edge case where addons are possibly writing directly
     -- to the FADEFRAMES global bypassing our hooks until something triggers
