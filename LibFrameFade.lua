@@ -186,7 +186,7 @@ end
 
 -- private
 function LibFrameFade:ProcessGlobalFadeFrames()
-    -- This functions is expected to be called as from two possible contexts;
+    -- This function is expected to be called as from two possible contexts;
     -- either as a post-hook on UIFrameFade, or when initially loading.
     --
     -- In the latter case we don't want to use the '.startAlpha' field on the
@@ -209,7 +209,7 @@ function LibFrameFade:ProcessGlobalFadeFrames()
     end
 
     -- Rehash the table to prevent taint due to UIFrameFade accessing
-    -- keys directly as part of 'while' loops.
+    -- keys directly as part of its loops.
 
     RehashTable(frames);
 end
