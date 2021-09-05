@@ -42,7 +42,6 @@ function LibFrameFade:StopFadingFrame(frame)
     self:ReleaseFaderForFrame(frame);
 end
 
--- private
 function LibFrameFade:OnLoad()
     if not self.faderPool then
         -- luacheck: no unused
@@ -73,7 +72,6 @@ function LibFrameFade:OnLoad()
     self:ProcessFadeFrames();
 end
 
--- private
 function LibFrameFade:OnFaderFinished(fader)
     local fadeInfo = self:GetFadeInfoForFader(fader);
 
@@ -88,22 +86,18 @@ function LibFrameFade:OnFaderFinished(fader)
     end
 end
 
--- private
 function LibFrameFade:OnFaderStopped(fader, requested)  -- luacheck: no unused (requested)
     self:ReleaseFader(fader);
 end
 
--- private
 function LibFrameFade:GetFaderForFrame(frame)
     return self.frameFaders[frame];
 end
 
--- private
 function LibFrameFade:GetFadeInfoForFrame(frame)
     return frame.fadeInfo;
 end
 
--- private
 function LibFrameFade:GetFadeInfoForFader(fader)
     local frame = self:GetFrameForFader(fader);
     local fadeInfo = frame and self:GetFadeInfoForFrame(frame) or nil;
@@ -111,7 +105,6 @@ function LibFrameFade:GetFadeInfoForFader(fader)
     return fadeInfo;
 end
 
--- private
 function LibFrameFade:GetFrameForFader(fader)
     local frame = fader.Anim:GetTarget();
 
@@ -130,7 +123,6 @@ function LibFrameFade:GetFrameForFader(fader)
     return frame;
 end
 
--- private
 function LibFrameFade:AcquireFaderForFrame(frame)
     -- Acquisition should release any current fader so we can sanely clean
     -- up any active animations on 'frame' prior to making new ones.
@@ -143,7 +135,6 @@ function LibFrameFade:AcquireFaderForFrame(frame)
     return fader;
 end
 
--- private
 function LibFrameFade:ReleaseFaderForFrame(frame)
     local fader = self:GetFaderForFrame(frame);
 
@@ -152,7 +143,6 @@ function LibFrameFade:ReleaseFaderForFrame(frame)
     end
 end
 
--- private
 function LibFrameFade:CreateFader()
     local fader = self:CreateAnimationGroup();
     fader:SetScript("OnFinished", function(...) return self:OnFaderFinished(...); end);
@@ -165,13 +155,11 @@ function LibFrameFade:CreateFader()
     return fader;
 end
 
--- private
 function LibFrameFade:ResetFader(fader)
     fader:Stop();
     fader.Anim:SetTarget(self);  -- See GetFrameForFader for why we use 'self'.
 end
 
--- private
 function LibFrameFade:ReleaseFader(fader)
     local frame = self:GetFrameForFader(fader);
 
@@ -182,7 +170,6 @@ function LibFrameFade:ReleaseFader(fader)
     self.faderPool:Release(fader);
 end
 
--- private
 function LibFrameFade:TriggerFinishCallback(fadeInfo)
     -- Technically this does taint execution for Blizzard-provided callbacks,
     -- however a brief audit of the codebases for each case shows that the
@@ -201,7 +188,6 @@ function LibFrameFade:TriggerFinishCallback(fadeInfo)
     xpcall(fadeInfo.finishedFunc, CallErrorHandler, arg1, arg2, arg3, arg4);
 end
 
--- private
 function LibFrameFade:ProcessFadeFrames()
     -- This function is expected to be called as from two possible contexts;
     -- either as a post-hook on UIFrameFade, or when initially loading.
