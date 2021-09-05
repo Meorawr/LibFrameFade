@@ -101,6 +101,11 @@ function LibFrameFade:OnFaderFinished(fader)
     -- Dispatching the on-finish function should be the last thing done as
     -- we need to be in a state to allow new fades to be started on the frame
     -- we just finished with.
+    --
+    -- Technically this does taint execution for Blizzard-provided callbacks,
+    -- however a brief audit of the codebases for each case shows that the
+    -- '.finishedFunc' field is only ever used to sequence further animations,
+    -- and as such no taint actually spreads anywhere important.
 
     if finishedFunc then
         xpcall(finishedFunc, CallErrorHandler);
