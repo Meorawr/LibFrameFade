@@ -1,0 +1,9 @@
+---
+package-as: LibFrameFade
+enable-nolib-creation: no
+
+license-output: LICENSE
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
