@@ -35,15 +35,6 @@ function LibFrameFade:StartFadingFrame(frame, fadeInfo)
     fader.Anim:SetDuration(fadeInfo.timeToFade);
     fader.Anim:SetEndDelay(fadeInfo.fadeHoldTime or 0);
 
-    if fadeInfo.finishedFunc then
-        local arg1 = fadeInfo.finishedArg1;
-        local arg2 = fadeInfo.finishedArg2;
-        local arg3 = fadeInfo.finishedArg3;
-        local arg4 = fadeInfo.finishedArg4;
-
-        fader.finishedFunc = GenerateClosure(fadeInfo.finishedFunc, arg1, arg2, arg3, arg4);
-    end
-
     fader:Play();
 end
 
@@ -89,21 +80,16 @@ end
 
 -- private
 function LibFrameFade:OnFaderFinished(fader)
-    local finishedFunc = fader.finishedFunc;
+    local fadeInfo = self:GetFadeInfoForFader(fader);
 
     self:ReleaseFader(fader);
 
     -- Dispatching the on-finish function should be the last thing done as
     -- we need to be in a state to allow new fades to be started on the frame
     -- we just finished with.
-    --
-    -- Technically this does taint execution for Blizzard-provided callbacks,
-    -- however a brief audit of the codebases for each case shows that the
-    -- '.finishedFunc' field is only ever used to sequence further animations,
-    -- and as such no taint actually spreads anywhere important.
 
-    if finishedFunc then
-        xpcall(finishedFunc, CallErrorHandler);
+    if fadeInfo then
+        self:TriggerFinishCallback(fadeInfo);
     end
 end
 
@@ -115,6 +101,19 @@ end
 -- private
 function LibFrameFade:GetFaderForFrame(frame)
     return self.frameFaders[frame];
+end
+
+-- private
+function LibFrameFade:GetFadeInfoForFrame(frame)
+    return frame.fadeInfo;
+end
+
+-- private
+function LibFrameFade:GetFadeInfoForFader(fader)
+    local frame = self:GetFrameForFader(fader);
+    local fadeInfo = frame and self:GetFadeInfoForFrame(frame) or nil;
+
+    return fadeInfo;
 end
 
 -- private
@@ -175,7 +174,6 @@ end
 function LibFrameFade:ResetFader(fader)
     fader:Stop();
     fader.Anim:SetTarget(self);  -- See GetFrameForFader for why we use 'self'.
-    fader.finishedFunc = nil;
 end
 
 -- private
@@ -187,6 +185,25 @@ function LibFrameFade:ReleaseFader(fader)
     end
 
     self.faderPool:Release(fader);
+end
+
+-- private
+function LibFrameFade:TriggerFinishCallback(fadeInfo)
+    -- Technically this does taint execution for Blizzard-provided callbacks,
+    -- however a brief audit of the codebases for each case shows that the
+    -- '.finishedFunc' field is only ever used to sequence further animations,
+    -- and as such no taint actually spreads anywhere important.
+
+    if not fadeInfo.finishedFunc then
+        return;
+    end
+
+    local arg1 = fadeInfo.finishedArg1;
+    local arg2 = fadeInfo.finishedArg2;
+    local arg3 = fadeInfo.finishedArg3;
+    local arg4 = fadeInfo.finishedArg4;
+
+    xpcall(fadeInfo.finishedFunc, CallErrorHandler, arg1, arg2, arg3, arg4);
 end
 
 -- private
