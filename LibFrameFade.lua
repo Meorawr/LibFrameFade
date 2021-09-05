@@ -70,7 +70,7 @@ function LibFrameFade:OnLoad()
     -- When upgrading or initially loading we should take ownership of any
     -- active fades being handled by UIFrameFade.
 
-    self:ProcessGlobalFadeFrames();
+    self:ProcessFadeFrames();
 end
 
 -- private
@@ -202,7 +202,7 @@ function LibFrameFade:TriggerFinishCallback(fadeInfo)
 end
 
 -- private
-function LibFrameFade:ProcessGlobalFadeFrames()
+function LibFrameFade:ProcessFadeFrames()
     -- This function is expected to be called as from two possible contexts;
     -- either as a post-hook on UIFrameFade, or when initially loading.
     --
