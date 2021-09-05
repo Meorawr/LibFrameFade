@@ -11,6 +11,6 @@
 ## X-Website: https://github.com/Meorawr/LibFrameFade
 ## X-Curse-Project-ID: 523855
 ## X-Wago-ID: e56nRD69
-## X-WoWI-ID: 0
+## X-WoWI-ID: 26143
 
 lib.xml
