@@ -36,7 +36,7 @@ function LibFrameFade:OnLoad()
     end
 
     if not self.isUIFrameFadeHooked then
-        hooksecurefunc("UIFrameFade", function() return self:ProcessFadeFrames(); end);
+        hooksecurefunc("UIFrameFade", function() return self:ProcessGlobalFadeFrames(); end);
         self.isUIFrameFadeHooked = true;
     end
 
@@ -48,7 +48,7 @@ function LibFrameFade:OnLoad()
     -- When upgrading or initially loading we should take ownership of any
     -- active fades being handled by UIFrameFade.
 
-    self:ProcessFadeFrames();
+    self:ProcessGlobalFadeFrames();
 end
 
 function LibFrameFade:OnFaderFinished(fader)
@@ -208,7 +208,7 @@ function LibFrameFade:TriggerFinishCallback(fadeInfo)
     xpcall(fadeInfo.finishedFunc, CallErrorHandler, arg1, arg2, arg3, arg4);
 end
 
-function LibFrameFade:ProcessFadeFrames()
+function LibFrameFade:ProcessGlobalFadeFrames()
     local frames = FADEFRAMES;
 
     for index, frame in ipairs_reverse(frames) do
