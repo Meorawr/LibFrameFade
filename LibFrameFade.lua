@@ -102,26 +102,6 @@ function LibFrameFade:GetFrameForFader(fader)
     return frame;
 end
 
-function LibFrameFade:AcquireFaderForFrame(frame)
-    -- Acquisition should release any current fader so we can sanely clean
-    -- up any active animations on 'frame' prior to making new ones.
-
-    self:ReleaseFaderForFrame(frame);
-
-    local fader = self.faderPool:Acquire();
-    self.frameFaders[frame] = fader;
-
-    return fader;
-end
-
-function LibFrameFade:ReleaseFaderForFrame(frame)
-    local fader = self:GetFaderForFrame(frame);
-
-    if fader then
-        self:ReleaseFader(fader);
-    end
-end
-
 function LibFrameFade:CreateFader()
     local fader = self:CreateAnimationGroup();
     fader:SetScript("OnFinished", function(...) return self:OnFaderFinished(...); end);
@@ -151,8 +131,18 @@ function LibFrameFade:ReleaseFader(fader)
     end
 end
 
+function LibFrameFade:IsFadingFrame(frame)
+    return self.frameFaders[frame] ~= nil;
+end
+
 function LibFrameFade:StartFadingFrame(frame, fadeInfo)
-    local fader = self:AcquireFaderForFrame(frame);
+    -- Clean up any ongoing fade operations for this frame before continuing.
+
+    if self:IsFadingFrame(frame) then
+        self:StopFadingFrame(frame);
+    end
+
+    local fader = self.faderPool:Acquire();
 
     -- The '.startAlpha' field on the 'fadeInfo' table is explicitly ignored
     -- when configuring the from-alpha value for the animation in favor of
@@ -182,15 +172,22 @@ function LibFrameFade:StartFadingFrame(frame, fadeInfo)
     fader.Anim:SetEndDelay(endDelay);
 
     fader:Play();
+
+    self.frameFaders[frame] = fader;
 end
 
 function LibFrameFade:StopFadingFrame(frame)
-    -- Releasing the fader associated with a frame will stop the animation,
-    -- and because SetToFinalAlpha is in effect here the final alpha value
-    -- on 'frame' will be set according to the progress of the animation,
-    -- which aligns with the behavior of UIFrameFadeRemoveFrame.
+    local fader = self:GetFaderForFrame(frame);
 
-    self:ReleaseFaderForFrame(frame);
+    if not fader then
+        return;
+    end
+
+    -- Note that because SetToFinalAlpha is in effect here the final alpha
+    -- value on 'frame' after stopping the animation will be set according to
+    -- its progress, which aligns with the behavior of UIFrameFadeRemoveFrame.
+
+    fader:Stop();
 end
 
 function LibFrameFade:TriggerFinishCallback(fadeInfo)
