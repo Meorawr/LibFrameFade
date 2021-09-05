@@ -21,27 +21,6 @@ end
 
 LibFrameFade = LibFrameFade or CreateFrame("Frame");
 
-function LibFrameFade:StartFadingFrame(frame, fadeInfo)
-    local fader = self:AcquireFaderForFrame(frame);
-
-    fader.Anim:SetTarget(frame);
-    fader.Anim:SetFromAlpha(fadeInfo.startAlpha);
-    fader.Anim:SetToAlpha(fadeInfo.endAlpha);
-    fader.Anim:SetDuration(fadeInfo.timeToFade);
-    fader.Anim:SetEndDelay(fadeInfo.fadeHoldTime or 0);
-
-    fader:Play();
-end
-
-function LibFrameFade:StopFadingFrame(frame)
-    -- Releasing the fader associated with a frame will stop the animation,
-    -- and because SetToFinalAlpha is in effect here the final alpha value
-    -- on 'frame' will be set according to the progress of the animation,
-    -- which aligns with the behavior of UIFrameFadeRemoveFrame.
-
-    self:ReleaseFaderForFrame(frame);
-end
-
 function LibFrameFade:OnLoad()
     if not self.faderPool then
         -- luacheck: no unused
@@ -170,6 +149,42 @@ function LibFrameFade:ReleaseFader(fader)
     self.faderPool:Release(fader);
 end
 
+function LibFrameFade:StartFadingFrame(frame, fadeInfo)
+    local fader = self:AcquireFaderForFrame(frame);
+
+    -- The 'startAlpha' field on the 'fadeInfo' table is explicitly ignored
+    -- when configuring the from-alpha value for the animation in favor of
+    -- the current alpha value of the frame.
+    --
+    -- The reason is that we need to support the case where tanimations are
+    -- already in-progress via UIFrameFade. This may happen if we're loaded
+    -- late, or in an edge case where addons are possibly writing directly
+    -- to the FADEFRAMES global bypassing our hooks until something triggers
+    -- them later.
+    --
+    -- This works fine for both the above cases and the normal case where
+    -- we're called at the start of a fade request, since the UIFrameFade
+    -- function that we've hooked guarantees that the alpha of 'frame' will
+    -- be set to the '.startAlpha' value.
+
+    fader.Anim:SetTarget(frame);
+    fader.Anim:SetFromAlpha(frame:GetAlpha());
+    fader.Anim:SetToAlpha(fadeInfo.endAlpha);
+    fader.Anim:SetDuration(fadeInfo.timeToFade);
+    fader.Anim:SetEndDelay(fadeInfo.fadeHoldTime or 0);
+
+    fader:Play();
+end
+
+function LibFrameFade:StopFadingFrame(frame)
+    -- Releasing the fader associated with a frame will stop the animation,
+    -- and because SetToFinalAlpha is in effect here the final alpha value
+    -- on 'frame' will be set according to the progress of the animation,
+    -- which aligns with the behavior of UIFrameFadeRemoveFrame.
+
+    self:ReleaseFaderForFrame(frame);
+end
+
 function LibFrameFade:TriggerFinishCallback(fadeInfo)
     -- Technically this does taint execution for Blizzard-provided callbacks,
     -- however a brief audit of the codebases for each case shows that the
@@ -189,24 +204,10 @@ function LibFrameFade:TriggerFinishCallback(fadeInfo)
 end
 
 function LibFrameFade:ProcessFadeFrames()
-    -- This function is expected to be called as from two possible contexts;
-    -- either as a post-hook on UIFrameFade, or when initially loading.
-    --
-    -- In the latter case we don't want to use the '.startAlpha' field on the
-    -- 'fadeInfo' tables of each frame since the animation could have been
-    -- running for some time already.
-    --
-    -- To resolve this, when processing the 'fadeInfo' tables we make a
-    -- shallow copy of them and replace the '.startAlpha' field with the
-    -- current alpha of the frame. This works fine for both cases since
-    -- UIFrameFade sets the alpha of 'frame' to the start value for us.
-
     local frames = FADEFRAMES;
 
     for index, frame in ipairs_reverse(frames) do
-        local shallow = true;
-        local fadeInfo = CopyTable(frame.fadeInfo, shallow);
-        fadeInfo.startAlpha = frame:GetAlpha();
+        local fadeInfo = self:GetFadeInfoForFrame(frame);
 
         self:StartFadingFrame(frame, fadeInfo);
         frames[index] = nil;

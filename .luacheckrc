@@ -17,7 +17,6 @@ globals = {
 
 read_globals = {
     "CallErrorHandler",
-    "CopyTable",
     "CreateFrame",
     "CreateObjectPool",
     "hooksecurefunc",
