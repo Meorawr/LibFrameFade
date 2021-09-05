@@ -146,7 +146,9 @@ function LibFrameFade:ReleaseFader(fader)
         self.frameFaders[frame] = nil;
     end
 
-    self.faderPool:Release(fader);
+    if self.faderPool:IsActive(fader) then
+        self.faderPool:Release(fader);
+    end
 end
 
 function LibFrameFade:StartFadingFrame(frame, fadeInfo)
