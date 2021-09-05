@@ -60,8 +60,13 @@ function LibFrameFade:OnFaderFinished(fader)
     -- we need to be in a state to allow new fades to be started on the frame
     -- we just finished with.
 
-    if fadeInfo then
-        self:TriggerFinishCallback(fadeInfo);
+    if fadeInfo and fadeInfo.finishedFunc then
+        local arg1 = fadeInfo.finishedArg1;
+        local arg2 = fadeInfo.finishedArg2;
+        local arg3 = fadeInfo.finishedArg3;
+        local arg4 = fadeInfo.finishedArg4;
+
+        xpcall(fadeInfo.finishedFunc, CallErrorHandler, arg1, arg2, arg3, arg4);
     end
 end
 
@@ -188,24 +193,6 @@ function LibFrameFade:StopFadingFrame(frame)
     -- its progress, which aligns with the behavior of UIFrameFadeRemoveFrame.
 
     fader:Stop();
-end
-
-function LibFrameFade:TriggerFinishCallback(fadeInfo)
-    -- Technically this does taint execution for Blizzard-provided callbacks,
-    -- however a brief audit of the codebases for each case shows that the
-    -- '.finishedFunc' field is only ever used to sequence further animations,
-    -- and as such no taint actually spreads anywhere important.
-
-    if not fadeInfo.finishedFunc then
-        return;
-    end
-
-    local arg1 = fadeInfo.finishedArg1;
-    local arg2 = fadeInfo.finishedArg2;
-    local arg3 = fadeInfo.finishedArg3;
-    local arg4 = fadeInfo.finishedArg4;
-
-    xpcall(fadeInfo.finishedFunc, CallErrorHandler, arg1, arg2, arg3, arg4);
 end
 
 function LibFrameFade:ProcessGlobalFadeFrames()
