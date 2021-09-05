@@ -216,7 +216,7 @@ function LibFrameFade:ProcessFadeFrames()
         local fadeInfo = self:GetFadeInfoForFrame(frame);
 
         self:StartFadingFrame(frame, fadeInfo);
-        frames[index] = nil;
+        table.remove(frames, index);
     end
 
     -- Rehash the table to prevent taint due to UIFrameFade accessing
