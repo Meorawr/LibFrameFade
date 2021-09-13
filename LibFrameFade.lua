@@ -1,4 +1,4 @@
-local LIBFRAMEFADE_VERSION = 2;
+local LIBFRAMEFADE_VERSION = 3;
 
 if LibFrameFade and (LibFrameFade.VERSION or 0) >= LIBFRAMEFADE_VERSION then
     return;
@@ -74,6 +74,19 @@ function LibFrameFade:OnFaderStopped(fader, requested)  -- luacheck: no unused (
     self:ReleaseFader(fader);
 end
 
+function LibFrameFade:OnFaderUpdate(fader, elapsed)  -- luacheck: no unused (elapsed)
+    local frame = self:GetFrameForFader(fader);
+
+    if not frame then
+        return;
+    end
+
+    -- The smooth progress value reflects the current alpha progress of the
+    -- animation and isn't affected by any start or end delays.
+    local alpha = fader.Anim:GetSmoothProgress();
+    frame:SetAlpha(alpha);
+end
+
 function LibFrameFade:IsFadingFrame(frame)
     return self.frameFaders[frame] ~= nil;
 end
@@ -113,6 +126,10 @@ function LibFrameFade:StartFadingFrame(frame, fadeInfo)
     fader.Anim:SetToAlpha(toAlpha);
     fader.Anim:SetDuration(duration - elapsed);
     fader.Anim:SetEndDelay(endDelay);
+
+    if self:ShouldFrameReceiveAlphaUpdates(frame) then
+        fader:SetScript("OnUpdate", function(...) return self:OnFaderUpdate(...); end);
+    end
 
     fader:Play();
 
@@ -180,6 +197,7 @@ end
 
 function LibFrameFade:ResetFader(fader)
     fader.Anim:SetTarget(self);  -- See GetFrameForFader for why we use 'self'.
+    fader:SetScript("OnUpdate", nil);
 end
 
 function LibFrameFade:ReleaseFader(fader)
@@ -208,6 +226,23 @@ function LibFrameFade:ProcessGlobalFadeFrames()
     -- keys directly as part of its loops.
 
     RehashTable(frames);
+end
+
+function LibFrameFade:ShouldFrameReceiveAlphaUpdates(frame)
+    -- By rewriting the UIFrameFade system to be animation based, one defect
+    -- that occurs is that SetAlpha is no longer called on each frame, which
+    -- can interfere with other addons. One example is ElvUI's chat tabs
+    -- which rely on a hook to prevent the tabs from fading out.
+    --
+    -- To work around this, if a SetAlpha method is present on the frame
+    -- directly - instead of just being part of the metatable - we'll
+    -- trigger a SetAlpha call every frame while the frame is fading.
+
+    if rawget(frame, "SetAlpha") ~= nil then
+        return true;
+    else
+        return false;
+    end
 end
 
 LibFrameFade:OnLoad();
