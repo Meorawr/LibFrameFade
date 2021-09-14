@@ -245,5 +245,17 @@ function LibFrameFade:ShouldFrameReceiveAlphaUpdates(frame)
     end
 end
 
+-- The UIFrameIsFading function is relied upon by a few addons and needs to
+-- return correct results, which it won't due to our mucking around with
+-- the FADEFRAMES table.
+--
+-- This function is unused by Blizzard in any live or test client for all
+-- game flavors as of 9.1.0, 2.5.2, and 1.14.0 - as a result it should be
+-- a safe replacement, despite tainting.
+
+function UIFrameIsFading(frame)
+    return LibFrameFade:IsFadingFrame(frame);
+end
+
 LibFrameFade:OnLoad();
 LibFrameFade.VERSION = LIBFRAMEFADE_VERSION;

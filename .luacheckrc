@@ -13,6 +13,7 @@ exclude_files = {
 globals = {
     "FADEFRAMES",
     "LibFrameFade",
+    "UIFrameIsFading",
 };
 
 read_globals = {
