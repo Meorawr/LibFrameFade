@@ -26,6 +26,10 @@ function LibFrameFade:OnLoad()
         self.closures = {};
     end
 
+    if not self.hooks then
+        self.hooks = {};
+    end
+
     if not self.faderPool then
         -- luacheck: no unused
         local creationFunc = function(pool) return self:CreateFader(); end;
@@ -39,15 +43,13 @@ function LibFrameFade:OnLoad()
         self.frameFaders = {};
     end
 
-    if not self.isUIFrameFadeHooked then
-        hooksecurefunc("UIFrameFade", function() return self:ProcessGlobalFadeFrames(); end);
-        self.isUIFrameFadeHooked = true;
-    end
+    -- For v4+ hooks can be disabled later if needed. Any earlier version
+    -- unfortunately can't have hooks removed - to accomodate, the booleans
+    -- for 'isUIFrameFadeHooked' and 'isUIFrameFadeRemoveFrameHooked' are
+    -- kept around on the library table if we need to detect this one day.
 
-    if not self.isUIFrameFadeRemoveFrameHooked then
-        hooksecurefunc("UIFrameFadeRemoveFrame", function(frame) return self:StopFadingFrame(frame); end);
-        self.isUIFrameFadeRemoveFrameHooked = true;
-    end
+    self:SecureHook("UIFrameFade", self:GetOrCreateMethodClosure("ProcessGlobalFadeFrames"));
+    self:SecureHook("UIFrameFadeRemoveFrame", self:GetOrCreateMethodClosure("StopFadingFrame"));
 
     -- When upgrading or initially loading we should take ownership of any
     -- active fades being handled by UIFrameFade.
@@ -258,6 +260,33 @@ function LibFrameFade:GetOrCreateMethodClosure(funcName, ...)
     end
 
     return func;
+end
+
+function LibFrameFade:SecureHook(funcName, func)
+    local isHookInstalled = (self.hooks[funcName] ~= nil);
+    local isHookBeingRemoved = (func == nil);
+
+    if not isHookInstalled and isHookBeingRemoved then
+        return;  -- No hook is installed, thus there's nothing to remove.
+    end
+
+    -- All secure hooks go through a layer of indirection via our 'hooks'
+    -- table to ensure that, if later required, we can disable them on
+    -- upgrades.
+
+    if isHookBeingRemoved then
+        self.hooks[funcName] = nop;
+    else
+        self.hooks[funcName] = func;
+    end
+
+    if not isHookInstalled then
+        hooksecurefunc(funcName, function(...) return self.hooks[funcName](...); end);
+    end
+end
+
+function LibFrameFade:SecureUnhook(funcName)
+    self:SecureHook(funcName, nil);
 end
 
 -- The UIFrameIsFading function is relied upon by a few addons and needs to

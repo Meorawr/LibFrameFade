@@ -24,4 +24,5 @@ read_globals = {
     "hooksecurefunc",
     "ipairs_reverse",
     "issecurevariable",
+    "nop",
 };
