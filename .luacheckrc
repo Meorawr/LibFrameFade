@@ -20,6 +20,7 @@ read_globals = {
     "CallErrorHandler",
     "CreateFrame",
     "CreateObjectPool",
+    "GenerateClosure",
     "hooksecurefunc",
     "ipairs_reverse",
     "issecurevariable",

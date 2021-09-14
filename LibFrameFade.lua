@@ -22,6 +22,10 @@ end
 LibFrameFade = LibFrameFade or CreateFrame("Frame");
 
 function LibFrameFade:OnLoad()
+    if not self.closures then
+        self.closures = {};
+    end
+
     if not self.faderPool then
         -- luacheck: no unused
         local creationFunc = function(pool) return self:CreateFader(); end;
@@ -128,7 +132,7 @@ function LibFrameFade:StartFadingFrame(frame, fadeInfo)
     fader.Anim:SetEndDelay(endDelay);
 
     if self:ShouldFrameReceiveAlphaUpdates(frame) then
-        fader:SetScript("OnUpdate", function(...) return self:OnFaderUpdate(...); end);
+        fader:SetScript("OnUpdate", self:GetOrCreateMethodClosure("OnFaderUpdate"));
     end
 
     fader:Play();
@@ -185,8 +189,8 @@ end
 
 function LibFrameFade:CreateFader()
     local fader = self:CreateAnimationGroup();
-    fader:SetScript("OnFinished", function(...) return self:OnFaderFinished(...); end);
-    fader:SetScript("OnStop", function(...) return self:OnFaderStopped(...); end);
+    fader:SetScript("OnFinished", self:GetOrCreateMethodClosure("OnFaderFinished"));
+    fader:SetScript("OnStop", self:GetOrCreateMethodClosure("OnFaderStopped"));
     fader:SetToFinalAlpha(true);
 
     fader.Anim = fader:CreateAnimation("Alpha");
@@ -243,6 +247,17 @@ function LibFrameFade:ShouldFrameReceiveAlphaUpdates(frame)
     else
         return false;
     end
+end
+
+function LibFrameFade:GetOrCreateMethodClosure(funcName, ...)
+    local func = self.closures[funcName];
+
+    if not func then
+        func = GenerateClosure(function(...) return self[funcName](self, ...); end, ...);
+        self.closures[funcName] = func;
+    end
+
+    return func;
 end
 
 -- The UIFrameIsFading function is relied upon by a few addons and needs to
