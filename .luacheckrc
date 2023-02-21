@@ -17,7 +17,6 @@ globals = {
 };
 
 read_globals = {
-    "CallErrorHandler",
     "CreateFrame",
     "CreateObjectPool",
     "GenerateClosure",
@@ -25,4 +24,7 @@ read_globals = {
     "ipairs_reverse",
     "issecurevariable",
     "nop",
+    "securecallfunction",
+    "WOW_PROJECT_ID",
+    "WOW_PROJECT_MAINLINE",
 };

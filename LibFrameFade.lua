@@ -1,6 +1,10 @@
-local LIBFRAMEFADE_VERSION = 4;
+local LIBFRAMEFADE_VERSION = 5;
 
 if LibFrameFade and (LibFrameFade.VERSION or 0) >= LIBFRAMEFADE_VERSION then
+    return;
+end
+
+if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then
     return;
 end
 
@@ -72,7 +76,7 @@ function LibFrameFade:OnFaderFinished(fader)
         local arg3 = fadeInfo.finishedArg3;
         local arg4 = fadeInfo.finishedArg4;
 
-        xpcall(fadeInfo.finishedFunc, CallErrorHandler, arg1, arg2, arg3, arg4);
+        securecallfunction(fadeInfo.finishedFunc, arg1, arg2, arg3, arg4);
     end
 end
 
