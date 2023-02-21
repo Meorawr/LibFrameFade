@@ -1,4 +1,7 @@
 ## LibFrameFade
+### v7
+- Add proper upgrade logic for disabling the library in Classic clients if migrating from v4- to v7+ at runtime.
+
 ### v6
 - Repackage for proper Classic interface version support.
 
