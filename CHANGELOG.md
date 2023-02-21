@@ -1,4 +1,7 @@
 ## LibFrameFade
+### v6
+- Repackage for proper Classic interface version support.
+
 ### v5
 - Disabled functionality in Classic clients as UIFrameFade has been patched there for a long time now.
 
