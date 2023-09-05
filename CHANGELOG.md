@@ -1,8 +1,11 @@
 ## LibFrameFade
 
+### v10
+- TOC bump.
+
 ### v9
 - TOC bump.
--
+
 ### v8
 - TOC bump for patch 10.1.0.
 
