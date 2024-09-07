@@ -1,7 +1,14 @@
-local LIBFRAMEFADE_VERSION = 7;
+local LIBFRAMEFADE_VERSION = 8;
 
 if LibFrameFade and (LibFrameFade.VERSION or 0) >= LIBFRAMEFADE_VERSION then
     return;
+end
+
+local function IsUIFrameFadeInsecure()
+    -- v8+: The library is no longer required on any modern version of Classic
+    --      or Mainline, and as such is globally disarmed.
+
+    return false;
 end
 
 local function RehashTable(tbl)
@@ -36,35 +43,24 @@ function LibFrameFade:OnLoad()
         local resetterFunc = function(pool, fader) return self:ResetFader(fader); end;
 
         self.faderPool = CreateObjectPool(creationFunc, resetterFunc);
-        self.faderPool:SetResetDisallowedIfNew(true);
     end
 
     if not self.frameFaders then
         self.frameFaders = {};
     end
 
-    -- For v4+ hooks can be disabled later if needed. Any earlier version
-    -- unfortunately can't have hooks removed - to accomodate, the booleans
-    -- for 'isUIFrameFadeHooked' and 'isUIFrameFadeRemoveFrameHooked' are
-    -- kept around on the library table if we need to detect this one day.
-    --
-    -- For v7+ the library is disabled in Classic as the core issue was fixed
-    -- long ago. Removing the hooks should disarm everything.
+    if IsUIFrameFadeInsecure() then
+        self:SecureHook("UIFrameFade", self:GetOrCreateMethodClosure("ProcessGlobalFadeFrames"));
+        self:SecureHook("UIFrameFadeRemoveFrame", self:GetOrCreateMethodClosure("StopFadingFrame"));
 
-    if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then
+        -- When upgrading or initially loading we should take ownership of any
+        -- active fades being handled by UIFrameFade.
+
+        self:ProcessGlobalFadeFrames();
+    else
         self:SecureHook("UIFrameFade", nil);
         self:SecureHook("UIFrameFadeRemoveFrame", nil);
-
-        return;
     end
-
-    self:SecureHook("UIFrameFade", self:GetOrCreateMethodClosure("ProcessGlobalFadeFrames"));
-    self:SecureHook("UIFrameFadeRemoveFrame", self:GetOrCreateMethodClosure("StopFadingFrame"));
-
-    -- When upgrading or initially loading we should take ownership of any
-    -- active fades being handled by UIFrameFade.
-
-    self:ProcessGlobalFadeFrames();
 end
 
 function LibFrameFade:OnFaderFinished(fader)
@@ -299,16 +295,18 @@ function LibFrameFade:SecureUnhook(funcName)
     self:SecureHook(funcName, nil);
 end
 
--- The UIFrameIsFading function is relied upon by a few addons and needs to
--- return correct results, which it won't due to our mucking around with
--- the FADEFRAMES table.
---
--- This function is unused by Blizzard in any live or test client for all
--- game flavors as of 9.1.0, 2.5.2, and 1.14.0 - as a result it should be
--- a safe replacement, despite tainting.
+if IsUIFrameFadeInsecure() then
+    -- The UIFrameIsFading function is relied upon by a few addons and needs to
+    -- return correct results, which it won't due to our mucking around with
+    -- the FADEFRAMES table.
+    --
+    -- This function is unused by Blizzard in any live or test client for all
+    -- game flavors as of 9.1.0, 2.5.2, and 1.14.0 - as a result it should be
+    -- a safe replacement, despite tainting.
 
-function UIFrameIsFading(frame)
-    return LibFrameFade:IsFadingFrame(frame);
+    function UIFrameIsFading(frame)
+        return LibFrameFade:IsFadingFrame(frame);
+    end
 end
 
 LibFrameFade:OnLoad();
