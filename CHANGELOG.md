@@ -1,7 +1,10 @@
 ## LibFrameFade
 
-### v13
+### v14
 - Disabled functionality in all clients. UIFrameFade is now securely implemented across Classic and Mainline and is no longer required.
+
+### v13
+- TOC bump.
 
 ### v12
 - TOC bump.
